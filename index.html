@@ -1,42 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-  <title>Javascript Tetris</title>
-  <style>
-    body      { font-family: Helvetica, sans-serif; }
-    #tetris   { margin: 1em auto; padding: 1em; border: 4px solid black; border-radius: 10px; background-color: #F8F8F8; }
-    #stats    { display: inline-block; vertical-align: top; }
-    #canvas   { display: inline-block; vertical-align: top; background: url(texture.jpg); box-shadow: 10px 10px 10px #999; border: 2px solid #333; }
-    #menu     { display: inline-block; vertical-align: top; position: relative; }
-    #menu p   { margin: 0.5em 0; text-align: center; }
-    #menu p a { text-decoration: none; color: black; }
-    #upcoming { display: block; margin: 0 auto; background-color: #E0E0E0; }
-    #score    { color: red; font-weight: bold; vertical-align: middle; }
-    #rows     { color: blue; font-weight: bold; vertical-align: middle; }
-    #stats    { position: absolute; bottom: 0em; right: 1em; }
-    @media screen and (min-width:   0px) and (min-height:   0px)  { #tetris { font-size: 0.75em; width: 250px; } #menu { width: 100px; height: 200px; } #upcoming { width:  50px; height:  50px; } #canvas { width: 100px; height: 200px; } } /* 10px chunks */
-    @media screen and (min-width: 400px) and (min-height: 400px)  { #tetris { font-size: 1.00em; width: 350px; } #menu { width: 150px; height: 300px; } #upcoming { width:  75px; height:  75px; } #canvas { width: 150px; height: 300px; } } /* 15px chunks */
-    @media screen and (min-width: 500px) and (min-height: 500px)  { #tetris { font-size: 1.25em; width: 450px; } #menu { width: 200px; height: 400px; } #upcoming { width: 100px; height: 100px; } #canvas { width: 200px; height: 400px; } } /* 20px chunks */
-    @media screen and (min-width: 600px) and (min-height: 600px)  { #tetris { font-size: 1.50em; width: 550px; } #menu { width: 250px; height: 500px; } #upcoming { width: 125px; height: 125px; } #canvas { width: 250px; height: 500px; } } /* 25px chunks */
-    @media screen and (min-width: 700px) and (min-height: 700px)  { #tetris { font-size: 1.75em; width: 650px; } #menu { width: 300px; height: 600px; } #upcoming { width: 150px; height: 150px; } #canvas { width: 300px; height: 600px; } } /* 30px chunks */
-    @media screen and (min-width: 800px) and (min-height: 800px)  { #tetris { font-size: 2.00em; width: 750px; } #menu { width: 350px; height: 700px; } #upcoming { width: 175px; height: 175px; } #canvas { width: 350px; height: 700px; } } /* 35px chunks */
-    @media screen and (min-width: 900px) and (min-height: 900px)  { #tetris { font-size: 2.25em; width: 850px; } #menu { width: 400px; height: 800px; } #upcoming { width: 200px; height: 200px; } #canvas { width: 400px; height: 800px; } } /* 40px chunks */
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#100d25">
+  <title>Tetris</title>
+  <link rel="stylesheet" href="tetris.css">
 </head>
-
 <body>
-
-  <div id="tetris">
-    <div id="menu">
-      <p id="start"><a href="javascript:play();">Press Space to Play.</a></p>
-      <p><canvas id="upcoming"></canvas></p>
-      <p>score <span id="score">00000</span></p>
-      <p>rows <span id="rows">0</span></p>
+  <canvas id="skyline" aria-hidden="true"></canvas>
+  <main id="tetris">
+    <header class="masthead">
+      <h1 aria-label="Tetris"><canvas id="wordmark" width="188" height="35" aria-hidden="true">Tetris</canvas></h1>
+    <div class="position-menu">
+      <label for="game-position">Posição do jogo</label>
+      <select id="game-position">
+        <option value="left">Esquerda</option>
+        <option value="center" selected>Centro</option>
+        <option value="right">Direita</option>
+      </select>
     </div>
-    <canvas id="canvas">
-      Sorry, this example cannot be run because your browser does not support the &lt;canvas&gt; element
-    </canvas>
-  </div>
+    </header>
+    <div class="console">
+      <section class="cabinet" aria-label="Tabuleiro de Tetris">
+        <div class="screen-bar">
+          <div class="status" role="status" id="status">Pronto para jogar</div>
+          <button id="sound" type="button" aria-label="Som do jogo" aria-pressed="true">Som ligado</button>
+        </div>
+        <div class="marquee-frame">
+          <div id="marquee-lights" aria-hidden="true"></div>
+          <div class="well">
+            <canvas id="canvas" aria-label="Campo de jogo de 10 por 20 casas"></canvas>
+            <div id="clear-effects" aria-hidden="true"></div>
+            <div id="start">
+              <i class="arcade-stick" aria-hidden="true"></i>
+              <strong id="prompt">Tudo pronto?</strong>
+              <button id="play" type="button"><span aria-hidden="true">▶</span> <span id="play-label">Iniciar jogo</span></button>
+              <small>ou pressione <kbd>Espaço</kbd></small>
+            </div>
+          </div>
+        </div>
+      </section>
+      <aside id="menu" aria-label="Painel do jogador">
+        <section class="card scoring">
+          <h2>Pontuação</h2><output id="score">00000</output>
+          <div id="line-bonus" role="status"></div>
+          <div class="row-count"><span>Linhas completas</span><b id="rows">0</b></div>
+        </section>
+        <section class="card preview"><h2>Próxima peça</h2><canvas id="upcoming" aria-label="Prévia da próxima peça"></canvas></section>
+        <section class="card controls"><h2>Controles</h2>
+          <div><span>Mover</span><span><kbd>←</kbd> <kbd>→</kbd></span></div>
+          <div><span>Girar</span><kbd>↑</kbd></div>
+          <div><span>Descer</span><kbd>↓</kbd></div>
+          <div><span>Queda rápida</span><kbd>Espaço</kbd></div>
+          <div><span>Encerrar</span><kbd>Esc</kbd></div>
+        </section>
+      </aside>
+      <div class="touch" aria-label="Controles de toque">
+        <button data-action="LEFT" aria-label="Mover para a esquerda">←</button>
+        <button data-action="UP" aria-label="Girar peça">↻</button>
+        <button data-action="DOWN" aria-label="Descer peça">↓</button>
+        <button data-action="RIGHT" aria-label="Mover para a direita">→</button>
+        <button id="hard-drop" type="button" aria-label="Queda rápida">Lançar ↓</button>
+      </div>
+    </div>
+    <details><summary>Desempenho</summary><div id="performance-panel"></div></details>
+  </main>
 
   <script src="stats.js"></script>
   <script>
@@ -112,13 +141,37 @@
     //
     //-------------------------------------------------------------------------
 
-    var i = { size: 4, blocks: [0x0F00, 0x2222, 0x00F0, 0x4444], color: 'cyan'   };
-    var j = { size: 3, blocks: [0x44C0, 0x8E00, 0x6440, 0x0E20], color: 'blue'   };
-    var l = { size: 3, blocks: [0x4460, 0x0E80, 0xC440, 0x2E00], color: 'orange' };
-    var o = { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: 'yellow' };
-    var s = { size: 3, blocks: [0x06C0, 0x8C40, 0x6C00, 0x4620], color: 'green'  };
-    var t = { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: 'purple' };
-    var z = { size: 3, blocks: [0x0C60, 0x4C80, 0xC600, 0x2640], color: 'red'    };
+    var i = { size: 4, blocks: [0x0F00, 0x2222, 0x00F0, 0x4444], color: '#63cbd1' };
+    var j = { size: 3, blocks: [0x44C0, 0x8E00, 0x6440, 0x0E20], color: '#6295df' };
+    var l = { size: 3, blocks: [0x4460, 0x0E80, 0xC440, 0x2E00], color: '#f29456' };
+    var o = { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: '#f4c956' };
+    var s = { size: 3, blocks: [0x06C0, 0x8C40, 0x6C00, 0x4620], color: '#99c77b' };
+    var t = { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: '#b58ad7' };
+    var z = { size: 3, blocks: [0x0C60, 0x4C80, 0xC600, 0x2640], color: '#ed7162' };
+
+    function drawWordmark() {
+      var letters = [
+        [31, 4, 4, 4, 4], [31, 16, 30, 16, 31], [31, 4, 4, 4, 4],
+        [30, 17, 30, 20, 18], [31, 4, 4, 4, 31], [31, 16, 31, 1, 31]
+      ];
+      var pen = get('wordmark').getContext('2d');
+      var spectrum = pen.createLinearGradient(0, 0, 0, 30);
+      spectrum.addColorStop(0, '#fff3b2');
+      spectrum.addColorStop(.49, '#ffc57a');
+      spectrum.addColorStop(.5, '#ff868b');
+      spectrum.addColorStop(1, '#fa65bc');
+      ['#702f85', spectrum].forEach(function(color, layer) {
+        pen.fillStyle = color;
+        letters.forEach(function(letter, index) {
+          letter.forEach(function(row, y) {
+            for (var x = 0; x < 5; x++) {
+              if (row & (16 >> x))
+                pen.fillRect(index * 31 + x * 5 + (1-layer)*2, y * 6 + (1-layer)*3, 5, 6);
+            }
+          });
+        });
+      });
+    }
 
     //------------------------------------------------
     // do the bit manipulation and iterate through each
@@ -172,6 +225,8 @@
 
     function run() {
 
+      drawWordmark();
+      installMarqueeLights();
       showStats(); // initialize FPS counter
       addEvents(); // attach keydown and resize events
 
@@ -193,26 +248,132 @@
 
     function showStats() {
       stats.domElement.id = 'stats';
-      get('menu').appendChild(stats.domElement);
+      get('performance-panel').appendChild(stats.domElement);
     }
 
     function addEvents() {
+      var sound = get('sound');
+      try {
+        soundEnabled = localStorage.getItem('tetris.sound') !== 'off';
+      } catch (error) { /* Use the session setting when storage is unavailable. */ }
+      updateSoundButton();
+      sound.addEventListener('click', function() {
+        soundEnabled = !soundEnabled;
+        updateSoundButton();
+        try { localStorage.setItem('tetris.sound', soundEnabled ? 'on' : 'off'); } catch (error) {}
+        if (soundEnabled) unlockAudio();
+        if (volume) volume.gain.setTargetAtTime(soundEnabled ? .16 : 0, audio.currentTime, .008);
+      });
+      var position = get('game-position');
+      var storageKey = 'tetris.gamePosition';
+      try {
+        var saved = localStorage.getItem(storageKey);
+        if (['left', 'center', 'right'].includes(saved)) position.value = saved;
+      } catch (error) { /* O navegador pode bloquear o armazenamento local. */ }
+      get('tetris').dataset.position = position.value;
+      position.addEventListener('change', function() {
+        get('tetris').dataset.position = position.value;
+        try { localStorage.setItem(storageKey, position.value); } catch (error) { /* Apenas nesta sessão. */ }
+      });
+      get('play').addEventListener('click', play);
+      get('hard-drop').addEventListener('click', function() {
+        if (playing) actions.push('hard-drop');
+      });
+      document.querySelectorAll('[data-action]').forEach(function(button) {
+        button.addEventListener('click', function() {
+          if (playing) actions.push(DIR[button.dataset.action]);
+        });
+      });
       document.addEventListener('keydown', keydown, false);
       window.addEventListener('resize', resize, false);
     }
 
+    function drawSkyline() {
+      var backdrop = get('skyline');
+      var width = backdrop.width = Math.ceil(backdrop.clientWidth / 2);
+      var height = backdrop.height = Math.ceil(backdrop.clientHeight / 2);
+      var pen = backdrop.getContext('2d');
+      var horizon = Math.floor(height * .72);
+      var sky = pen.createLinearGradient(0, 0, 0, horizon);
+      sky.addColorStop(0, '#0d0e24');
+      sky.addColorStop(.55, '#312047');
+      sky.addColorStop(.88, '#754466');
+      sky.addColorStop(1, '#b36577');
+      pen.fillStyle = sky;
+      pen.fillRect(0, 0, width, height);
+      var seed = 71;
+      function noise() {
+        seed = (seed * 16807) % 2147483647;
+        return seed / 2147483647;
+      }
+      for (var star = 0; star < width / 3; star++) {
+        pen.fillStyle = star % 5 ? '#ac92b5' : '#f5dfe3';
+        pen.fillRect(Math.floor(noise()*width), Math.floor(noise()*horizon), 1, 1);
+      }
+      var radius = Math.min(width * .09, height * .14);
+      var sunX = width * .82, sunY = horizon - radius * 1.08;
+      var sunset = pen.createLinearGradient(0, sunY - radius, 0, sunY + radius);
+      sunset.addColorStop(0, '#ffcf96');
+      sunset.addColorStop(1, '#f17ca2');
+      pen.fillStyle = sunset;
+      for (var line = -Math.floor(radius); line <= radius; line++) {
+        if (line > 0 && line % 6 < 2) continue;
+        var chord = Math.sqrt(radius * radius - line * line);
+        pen.fillRect(Math.round(sunX - chord), Math.round(sunY + line), Math.ceil(chord*2), 1);
+      }
+      for (var layer = 0; layer < 2; layer++) {
+        for (var x = 0; x < width;) {
+          var building = Math.floor(5 + noise() * 16);
+          var roof = horizon - Math.floor((.02 + noise() * .13) * height / (layer + 1));
+          pen.fillStyle = layer ? '#261d37' : '#503654';
+          pen.fillRect(x, roof, building, horizon - roof);
+          pen.fillStyle = layer ? '#ae738b' : '#91677e';
+          for (var floor = roof + 3; floor < horizon - 2; floor += 4)
+            for (var windowX = x + 2; windowX < x + building - 1; windowX += 4)
+              if (noise() > .75) pen.fillRect(windowX, floor, 1, 1);
+          x += building;
+        }
+      }
+      pen.fillStyle = '#171429';
+      pen.fillRect(0, horizon, width, height - horizon);
+      pen.beginPath();
+      for (var lane = -16; lane <= 16; lane++) {
+        pen.moveTo(width / 2, horizon);
+        pen.lineTo(width / 2 + lane * width / 6, height);
+      }
+      for (var gap = 1; horizon + gap < height; gap *= 1.6) {
+        pen.moveTo(0, horizon + gap);
+        pen.lineTo(width, horizon + gap);
+      }
+      pen.strokeStyle = '#503057';
+      pen.lineWidth = .55;
+      pen.stroke();
+    }
+
     function resize(event) {
-      canvas.width   = canvas.clientWidth;  // set canvas logical size equal to its physical size
-      canvas.height  = canvas.clientHeight; // (ditto)
-      ucanvas.width  = ucanvas.clientWidth;
-      ucanvas.height = ucanvas.clientHeight;
-      dx = canvas.width  / nx; // pixel size of a single tetris block
-      dy = canvas.height / ny; // (ditto)
+      drawSkyline();
+      var ratio = Math.min(window.devicePixelRatio || 1, 3);
+      [canvas, ucanvas].forEach(function(surface) {
+        var size = surface.getBoundingClientRect();
+        surface.width = Math.round(size.width * ratio);
+        surface.height = Math.round(size.height * ratio);
+        surface.getContext('2d').setTransform(surface.width / size.width, 0, 0, surface.height / size.height, 0, 0);
+      });
+      var board = canvas.getBoundingClientRect();
+      dx = board.width / nx;
+      dy = board.height / ny;
       invalidate();
       invalidateNext();
     }
 
     function keydown(ev) {
+      if (ev.target === get('game-position')) return;
+      if (ev.target === get('sound') && ev.keyCode === KEY.SPACE) return;
+      if (ev.keyCode === KEY.SPACE && ev.target.closest('summary, .touch button')) return;
+      if (ev.keyCode === KEY.SPACE && ev.repeat) {
+        ev.preventDefault();
+        return;
+      }
       var handled = false;
       if (playing) {
         switch(ev.keyCode) {
@@ -220,6 +381,7 @@
           case KEY.RIGHT:  actions.push(DIR.RIGHT); handled = true; break;
           case KEY.UP:     actions.push(DIR.UP);    handled = true; break;
           case KEY.DOWN:   actions.push(DIR.DOWN);  handled = true; break;
+          case KEY.SPACE:  actions.push('hard-drop'); handled = true; break;
           case KEY.ESC:    lose();                  handled = true; break;
         }
       }
@@ -235,8 +397,22 @@
     // GAME LOGIC
     //-------------------------------------------------------------------------
 
-    function play() { hide('start'); reset();          playing = true;  }
-    function lose() { show('start'); setVisualScore(); playing = false; }
+    function play() {
+      unlockAudio();
+      hide('start');
+      reset();
+      playing = true;
+      get('status').textContent = 'Em jogo';
+    }
+    function lose() {
+      playing = false;
+      setVisualScore();
+      invalidate();
+      get('prompt').textContent = 'Fim de jogo';
+      get('play-label').textContent = 'Jogar de novo';
+      get('status').textContent = 'Partida encerrada';
+      show('start');
+    }
 
     function setVisualScore(n)      { vscore = n || score; invalidateScore(); }
     function setScore(n)            { score = n; setVisualScore(n);  }
@@ -254,6 +430,11 @@
 
     function reset() {
       dt = 0;
+      clearStreak = 0;
+      settlingRows = null;
+      animatedDrop = null;
+      endCelebration();
+      get('clear-effects').replaceChildren();
       clearActions();
       clearBlocks();
       clearRows();
@@ -264,9 +445,21 @@
 
     function update(idt) {
       if (playing) {
-        if (vscore < score)
-          setVisualScore(vscore + 1);
+        if (vscore < score && idt > 0) {
+          var remaining = score - vscore;
+          setVisualScore(vscore + Math.ceil(remaining * (1 - Math.exp(-12 * idt))));
+        }
+        if (animatedDrop) {
+          if (performance.now() - animatedDrop.start >= animatedDrop.duration) {
+            var landing = animatedDrop.landing;
+            animatedDrop = null;
+            finishHardDrop(landing);
+          }
+          invalidate();
+          return;
+        }
         handle(actions.shift());
+        if (animatedDrop || !playing) return;
         dt = dt + idt;
         if (dt > step) {
           dt = dt - step;
@@ -281,6 +474,7 @@
         case DIR.RIGHT: move(DIR.RIGHT); break;
         case DIR.UP:    rotate();        break;
         case DIR.DOWN:  drop();          break;
+        case 'hard-drop': hardDrop();    break;
       }
     }
 
@@ -310,11 +504,66 @@
       }
     }
 
+    function landingRow() {
+      var y = current.y;
+      while (unoccupied(current.type, current.x, y + 1, current.dir)) y++;
+      return y;
+    }
+
+    var animatedDrop = null;
+
+    function hardDrop() {
+      var landing = landingRow();
+      var distance = landing - current.y;
+      if (distance > 0 && !reducedMotion()) {
+        animatedDrop = { landing: landing, start: performance.now(), duration: 80 + distance * 6.5 };
+        invalidate();
+        return;
+      }
+      finishHardDrop(landing);
+    }
+
+    function finishHardDrop(landing) {
+      var distance = landing - current.y;
+      if (distance > 0) {
+        playTone(310, 54, 0, .14, 'triangle', .85);
+        if (!reducedMotion()) {
+          if (canvas.animate) {
+            var impact = Math.min(3, distance / 4);
+            canvas.animate([
+              { transform: 'translateY(0)' },
+              { transform: 'translateY(' + impact + 'px)', offset: .25 },
+              { transform: 'translateY(0)' }
+            ], { duration: 140, easing: 'ease-out' });
+          }
+          var columns = new Set();
+          eachblock(current.type, current.x, current.y, current.dir, function(x, y) {
+            if (columns.has(x)) return;
+            columns.add(x);
+            var trail = cellEffect('drop-trail', x, y, current.type.color);
+            trail.style.height = (distance * 100 / ny) + '%';
+          });
+        }
+      }
+      current.y = landing;
+      dt = 0;
+      drop();
+    }
+
     function drop() {
       if (!move(DIR.DOWN)) {
+        settlingRows = null;
         addScore(10);
         dropPiece();
-        removeLines();
+        if (!removeLines()) {
+          clearStreak = 0;
+          playTone(160, 72, 0, .09, 'triangle', .6);
+          if (!reducedMotion()) {
+            eachblock(current.type, current.x, current.y, current.dir, function(x, y) {
+              cellEffect('lock-glint', x, y, current.type.color);
+            });
+          }
+        }
         setCurrentPiece(next);
         setNextPiece(randomPiece());
         clearActions();
@@ -330,31 +579,151 @@
       });
     }
 
+    var clearStreak = 0, settlingRows = null;
+
     function removeLines() {
-      var x, y, complete, n = 0;
-      for(y = ny ; y > 0 ; --y) {
-        complete = true;
-        for(x = 0 ; x < nx ; ++x) {
-          if (!getBlock(x, y))
-            complete = false;
-        }
-        if (complete) {
-          removeLine(y);
-          y = y + 1; // recheck same line
-          n++;
+      var cleared = 0, topClear, offsets = [];
+      for (var y = ny - 1; y >= 0; y--) {
+        var x = 0;
+        while (x < nx && getBlock(x, y)) x++;
+        if (x === nx) {
+          highlightRow(y);
+          topClear = y;
+          cleared++;
+        } else if (cleared) {
+          // Read upward so a row is copied before its destination can overwrite it.
+          var destination = y + cleared;
+          offsets[destination] = cleared;
+          for (x = 0; x < nx; x++) setBlock(x, destination, getBlock(x, y));
         }
       }
-      if (n > 0) {
-        addRows(n);
-        addScore(100*Math.pow(2,n-1)); // 1: 100, 2: 200, 3: 400, 4: 800
-      }
+      if (!cleared) return 0;
+      for (var row = 0; row < cleared; row++)
+        for (var col = 0; col < nx; col++) setBlock(col, row, null);
+
+      if (!reducedMotion()) settlingRows = { offsets: offsets, start: performance.now() };
+      clearStreak++;
+      var bonus = 100 * Math.pow(2, cleared - 1);
+      addRows(cleared);
+      addScore(bonus);
+      celebrateLines(cleared, bonus, topClear);
+      return cleared;
     }
 
-    function removeLine(n) {
-      var x, y;
-      for(y = n ; y >= 0 ; --y) {
-        for(x = 0 ; x < nx ; ++x)
-          setBlock(x, y, (y == 0) ? null : getBlock(x, y-1));
+    var audio, volume, soundEnabled = true;
+
+    function updateSoundButton() {
+      get('sound').textContent = soundEnabled ? 'Som ligado' : 'Sem som';
+      get('sound').setAttribute('aria-pressed', String(soundEnabled));
+    }
+
+    function unlockAudio() {
+      var Audio = window.AudioContext || window.webkitAudioContext;
+      if (!soundEnabled || !Audio) return;
+      try {
+        if (!audio) {
+          audio = new Audio();
+          volume = audio.createGain();
+          volume.gain.value = .16;
+          volume.connect(audio.destination);
+        }
+        if (audio.state === 'suspended') audio.resume().catch(function() {});
+      } catch (error) { /* The browser can disable audio output. */ }
+    }
+
+    function playTone(from, to, delay, duration, waveform, strength) {
+      if (!soundEnabled || !volume || audio.state !== 'running') return;
+      var start = audio.currentTime + delay;
+      var note = audio.createOscillator();
+      var envelope = audio.createGain();
+      note.type = waveform;
+      note.frequency.setValueAtTime(from, start);
+      note.frequency.exponentialRampToValueAtTime(to, start + duration);
+      envelope.gain.setValueAtTime(.0001, start);
+      envelope.gain.exponentialRampToValueAtTime(strength, start + .008);
+      envelope.gain.exponentialRampToValueAtTime(.0001, start + duration);
+      note.connect(envelope);
+      envelope.connect(volume);
+      note.onended = function() { note.disconnect(); envelope.disconnect(); };
+      note.start(start);
+      note.stop(start + duration);
+    }
+
+    // The four runs share their corner bulbs and follow the frame clockwise.
+    function installMarqueeLights() {
+      var lights = get('marquee-lights');
+      var colors = ['#ffd572', '#ff80b8', '#86ffeb'];
+      function addBulb(x, y) {
+        var bulb = document.createElement('i');
+        var index = lights.childElementCount;
+        bulb.style.left = x + '%';
+        bulb.style.top = y + '%';
+        bulb.style.setProperty('--lamp', colors[index % colors.length]);
+        bulb.style.setProperty('--delay', ((index % 12) - 12) * 100 + 'ms');
+        lights.appendChild(bulb);
+      }
+      for (var top = 0; top < 10; top++) addBulb(top * 10, 0);
+      for (var right = 0; right < 20; right++) addBulb(100, right * 5);
+      for (var bottom = 0; bottom < 10; bottom++) addBulb(100 - bottom * 10, 100);
+      for (var left = 0; left < 20; left++) addBulb(0, 100 - left * 5);
+    }
+
+    var celebrationTimer;
+    function celebrateLines(count, bonus, row) {
+      clearTimeout(celebrationTimer);
+      var chime = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1568];
+      var transpose = Math.pow(2, Math.min(clearStreak - 1, 4) * 2 / 12);
+      chime.slice(0, 2 + count).forEach(function(pitch, index) {
+        playTone(pitch * transpose, pitch * transpose, index * .075, .27, 'sine', .8);
+      });
+      var label = count === 4 ? 'TETRIS!' : (count === 1 ? '1 linha' : count + ' linhas');
+      var combo = clearStreak > 1 ? 'Combo ' + clearStreak : '';
+      get('line-bonus').textContent = [combo, label, '+' + bonus + ' pts'].filter(Boolean).join(' • ');
+      get('tetris').classList.toggle('combo-lit', clearStreak > 1);
+      if (!reducedMotion()) {
+        var effects = get('clear-effects');
+        var previous = effects.querySelector('.clear-callout');
+        if (previous) previous.remove();
+        var callout = document.createElement('strong');
+        callout.className = 'clear-callout';
+        callout.textContent = (combo || label) + '  +' + bonus;
+        callout.style.top = Math.max(12, row * 100 / ny - 5) + '%';
+        effects.appendChild(callout);
+        callout.addEventListener('animationend', function() { callout.remove(); }, { once: true });
+      }
+      get('tetris').classList.add('celebrating');
+      celebrationTimer = setTimeout(endCelebration, 3000);
+    }
+
+    function endCelebration() {
+      clearTimeout(celebrationTimer);
+      get('tetris').classList.remove('celebrating', 'combo-lit');
+      get('line-bonus').textContent = '';
+    }
+
+    function reducedMotion() {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function cellEffect(name, x, y, color) {
+      var cell = document.createElement('i');
+      cell.className = name;
+      cell.style.left = (x * 100 / nx) + '%';
+      cell.style.top = (y * 100 / ny) + '%';
+      cell.style.setProperty('--piece-color', color);
+      get('clear-effects').appendChild(cell);
+      cell.addEventListener('animationend', function() { cell.remove(); }, { once: true });
+      return cell;
+    }
+
+    function highlightRow(row) {
+      if (reducedMotion()) return;
+      for (var x = 0; x < nx; x++) {
+        var distance = x - (nx - 1) / 2;
+        var cell = cellEffect('clear-fragment', x, row, getBlock(x, row).color);
+        cell.style.animationDelay = (Math.abs(distance) * 24) + 'ms';
+        cell.style.setProperty('--drift', (distance * 16) + '%');
+        cell.style.setProperty('--spin', (distance * 18) + 'deg');
       }
     }
 
@@ -372,7 +741,6 @@
     function draw() {
       ctx.save();
       ctx.lineWidth = 1;
-      ctx.translate(0.5, 0.5); // for crisp 1px black lines
       drawCourt();
       drawNext();
       drawScore();
@@ -381,31 +749,79 @@
     }
 
     function drawCourt() {
-      if (invalid.court) {
+      if (invalid.court || settlingRows) {
+        var fall = 0;
+        if (settlingRows) {
+          var elapsed = performance.now() - settlingRows.start;
+          var progress = Math.min(1, Math.max(0, (elapsed - 70) / 190));
+          fall = 1 - progress * progress;
+          if (progress === 1) settlingRows = null;
+        }
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        if (playing)
-          drawPiece(ctx, current.type, current.x, current.y, current.dir);
+        if (playing === undefined) drawTitlePieces();
         var x, y, block;
         for(y = 0 ; y < ny ; y++) {
+          var drawY = settlingRows ? y - fall * (settlingRows.offsets[y] || 0) : y;
           for (x = 0 ; x < nx ; x++) {
             if (block = getBlock(x,y))
-              drawBlock(ctx, x, y, block.color);
+              drawBlock(ctx, x, drawY, block.color);
           }
         }
-        ctx.strokeRect(0, 0, nx*dx - 1, ny*dy - 1); // court boundary
+        if (playing) {
+          var pieceY = current.y;
+          if (animatedDrop) {
+            var travel = Math.min(1, (performance.now() - animatedDrop.start) / animatedDrop.duration);
+            pieceY += (animatedDrop.landing - pieceY) * travel * travel;
+          } else {
+            drawLandingGuide();
+          }
+          drawPiece(ctx, current.type, current.x, pieceY, current.dir);
+        }
         invalid.court = false;
       }
     }
 
+    function drawLandingGuide() {
+      var landing = landingRow();
+      if (landing === current.y) return;
+      ctx.save();
+      ctx.strokeStyle = current.type.color;
+      ctx.fillStyle = current.type.color;
+      ctx.lineWidth = 1.5;
+      eachblock(current.type, current.x, landing, current.dir, function(x, y) {
+        ctx.globalAlpha = .1;
+        ctx.fillRect(x * dx + 2, y * dy + 2, dx - 4, dy - 4);
+        ctx.globalAlpha = .7;
+        ctx.strokeRect(x * dx + 2, y * dy + 2, dx - 4, dy - 4);
+      });
+      ctx.restore();
+    }
+
+    function drawTitlePieces() {
+      drawPiece(ctx, t, 3, 2, DIR.UP);
+      drawPiece(ctx, i, -2, 16, DIR.RIGHT);
+      drawPiece(ctx, o, 1, 18, DIR.UP);
+      drawPiece(ctx, l, 3, 17, DIR.UP);
+      drawPiece(ctx, s, 5, 18, DIR.UP);
+      drawPiece(ctx, j, 8, 17, DIR.UP);
+      drawPiece(ctx, z, 1, 16, DIR.UP);
+    }
+
     function drawNext() {
       if (invalid.next) {
-        var padding = (nu - next.type.size) / 2; // half-arsed attempt at centering next piece display
+        var size = ucanvas.getBoundingClientRect();
+        var cell = Math.min(24, size.width / nu, size.height / 3.5);
+        var minX = 4, minY = 4, maxX = 0, maxY = 0;
+        eachblock(next.type, 0, 0, next.dir, function(x, y) {
+          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        });
+        uctx.clearRect(0, 0, ucanvas.width, ucanvas.height);
         uctx.save();
-        uctx.translate(0.5, 0.5);
-        uctx.clearRect(0, 0, nu*dx, nu*dy);
-        drawPiece(uctx, next.type, padding, padding, next.dir);
-        uctx.strokeStyle = 'black';
-        uctx.strokeRect(0, 0, nu*dx - 1, nu*dy - 1);
+        uctx.translate((size.width - (minX + maxX + 1)*cell)/2,
+                       (size.height - (minY + maxY + 1)*cell)/2);
+        uctx.scale(cell/dx, cell/dy);
+        drawPiece(uctx, next.type, 0, 0, next.dir);
         uctx.restore();
         invalid.next = false;
       }
@@ -432,9 +848,24 @@
     }
 
     function drawBlock(ctx, x, y, color) {
+      var left = x*dx + 1, top = y*dy + 1;
+      var width = dx - 2, height = dy - 2;
+      var edge = Math.max(1, Math.round(width * .12));
       ctx.fillStyle = color;
-      ctx.fillRect(x*dx, y*dy, dx, dy);
-      ctx.strokeRect(x*dx, y*dy, dx, dy)
+      ctx.fillRect(left, top, width, height);
+      ctx.fillStyle = 'rgba(255,255,255,.48)';
+      ctx.fillRect(left, top, width, edge);
+      ctx.fillRect(left, top + edge, edge, height - edge);
+      ctx.fillStyle = 'rgba(0,0,0,.22)';
+      ctx.fillRect(left, top + height - edge, width, edge);
+      ctx.fillRect(left + width - edge, top + edge, edge, height - 2*edge);
+      var face = ctx.createLinearGradient(left, top, left + width, top + height);
+      face.addColorStop(0, 'rgba(255,255,255,.28)');
+      face.addColorStop(.5, 'rgba(255,255,255,.09)');
+      face.addColorStop(.51, 'rgba(0,0,0,.03)');
+      face.addColorStop(1, 'rgba(0,0,0,.12)');
+      ctx.fillStyle = face;
+      ctx.fillRect(left + edge, top + edge, width - 2*edge, height - 2*edge);
     }
 
     //-------------------------------------------------------------------------
