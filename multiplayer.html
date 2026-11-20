@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tetris multiplayer local</title>
+  <link rel="stylesheet" href="tetris.css">
+</head>
+<body class="versus-page">
+  <canvas id="skyline" aria-hidden="true"></canvas>
+  <main class="arcade-shell versus-room">
+    <header class="masthead">
+      <h1 aria-label="Tetris"><canvas id="wordmark" width="188" height="35" aria-hidden="true">Tetris</canvas></h1>
+      <div class="versus-mode">
+        <h2>Multiplayer local</h2>
+        <nav aria-label="Opções do multiplayer">
+          <a id="solo-link" href="index.html">Modo solo</a>
+          <a id="versus-mode-link" href="?areia">Modo areia</a>
+          <button id="fullscreen-toggle" type="button" hidden>Tela cheia</button>
+        </nav>
+      </div>
+    </header>
+    <div class="card versus-match">
+      <div class="status" id="match-status" role="status" data-state="loading">Carregando tabuleiros…</div>
+    </div>
+    <div class="versus-players">
+      <section class="versus-player" aria-labelledby="player-one">
+        <div class="card versus-controls">
+          <h2 id="player-one">Jogador 1</h2>
+          <div class="versus-keys"><span><kbd>A</kbd> <kbd>D</kbd> Mover</span><span><kbd>W</kbd> Girar</span><span><kbd>S</kbd> Queda rápida</span></div>
+        </div>
+        <div class="versus-field">
+          <iframe title="Tabuleiro do jogador 1" allow="autoplay" tabindex="-1" inert></iframe>
+          <div class="ready-overlay" hidden>
+            <div class="ready-card">
+              <kbd class="ready-key">S</kbd>
+              <strong class="ready-title">Pronto?</strong>
+              <span class="ready-instruction">Pressione S para confirmar</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="versus-player" aria-labelledby="player-two">
+        <div class="card versus-controls">
+          <h2 id="player-two">Jogador 2</h2>
+          <div class="versus-keys"><span><kbd>←</kbd> <kbd>→</kbd> Mover</span><span><kbd>↑</kbd> Girar</span><span><kbd>↓</kbd> Queda rápida</span></div>
+        </div>
+        <div class="versus-field">
+          <iframe title="Tabuleiro do jogador 2" allow="autoplay" tabindex="-1" inert></iframe>
+          <div class="ready-overlay" hidden>
+            <div class="ready-card">
+              <kbd class="ready-key">↓</kbd>
+              <strong class="ready-title">Pronto?</strong>
+              <span class="ready-instruction">Pressione a seta para baixo para confirmar</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="wordmark.js"></script>
+  <script src="skyline.js"></script>
+  <script src="lateral-controls.js"></script>
+  <script>
+    drawWordmark(document.getElementById('wordmark'));
+    const skyline = document.getElementById('skyline');
+    drawSkyline(skyline);
+    window.addEventListener('resize', () => drawSkyline(skyline));
+    const boards = Array.from(document.querySelectorAll('iframe'));
+    const sandMatch = new URLSearchParams(location.search).has('areia');
+    if (sandMatch) {
+      document.title = 'Tetris · Multiplayer de areia';
+      document.querySelector('.versus-mode h2').textContent = 'Multiplayer de areia';
+      document.getElementById('solo-link').href = 'index.html?areia';
+      const modeLink = document.getElementById('versus-mode-link');
+      modeLink.href = 'multiplayer.html';
+      modeLink.textContent = 'Modo clássico';
+    }
+    const players = boards.map(board => board.closest('.versus-player'));
+    const status = document.getElementById('match-status');
+    const readyOverlays = players.map(player => player.querySelector('.ready-overlay'));
+    const confirmed = [false, false];
+    const fullscreen = document.getElementById('fullscreen-toggle');
+    if (document.fullscreenEnabled) {
+      fullscreen.hidden = false;
+      fullscreen.addEventListener('click', async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await document.documentElement.requestFullscreen();
+        } catch {
+          fullscreen.textContent = 'Tentar tela cheia novamente';
+        }
+      });
+      document.addEventListener('fullscreenchange', () => {
+        fullscreen.textContent = document.fullscreenElement ? 'Sair da tela cheia' : 'Tela cheia';
+      });
+    }
+    const controls = [
+      {KeyA: 'LEFT', KeyD: 'RIGHT', KeyW: 'UP', KeyS: 'hard-drop'},
+      {ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', ArrowUp: 'UP', ArrowDown: 'hard-drop'}
+    ];
+    const lateralControls = boards.map(board => createLateralControls(action => {
+      board.contentWindow.postMessage({type: 'tetris-move', action}, '*');
+    }));
+    let loaded = 0;
+    let playing = false;
+    let round = 0;
+
+    boards.forEach(board => {
+      board.addEventListener('load', () => {
+        if (++loaded === boards.length) {
+          showReadyOverlays();
+          status.textContent = 'Aguardando os dois jogadores';
+          status.dataset.state = 'ready';
+        }
+      }, {once: true});
+      board.src = sandMatch ? 'index.html?versus&areia' : 'index.html?versus';
+    });
+
+    function showReadyOverlays() {
+      readyOverlays.forEach((overlay, player) => {
+        confirmed[player] = false;
+        overlay.hidden = false;
+        overlay.classList.remove('is-ready');
+        overlay.querySelector('.ready-title').textContent = 'Pronto?';
+      });
+    }
+
+    function startMatch() {
+      playing = true;
+      readyOverlays.forEach(overlay => { overlay.hidden = true; });
+      players.forEach(player => player.classList.remove('is-winner'));
+      status.textContent = 'Partida em andamento';
+      status.dataset.state = 'playing';
+      round++;
+      boards.forEach(board => board.contentWindow.postMessage({type: 'tetris-start', round}, '*'));
+    }
+
+    document.addEventListener('keydown', event => {
+      if (loaded !== boards.length || event.ctrlKey || event.altKey || event.metaKey) return;
+      const player = controls.findIndex(keys => Object.hasOwn(keys, event.code));
+      if (player === -1) return;
+      const action = controls[player][event.code];
+      if (!playing && action !== 'hard-drop') return;
+      event.preventDefault();
+      if (action === 'hard-drop' && event.repeat) return;
+      if (!playing) {
+        if (confirmed[player]) return;
+        confirmed[player] = true;
+        readyOverlays[player].classList.add('is-ready');
+        readyOverlays[player].querySelector('.ready-title').textContent = 'Pronto!';
+        status.textContent = 'Jogador ' + (player + 1) + ' pronto. Aguardando o outro jogador.';
+        status.dataset.state = 'ready';
+        if (confirmed.every(Boolean)) startMatch();
+        return;
+      }
+      if (action === 'LEFT' || action === 'RIGHT') {
+        lateralControls[player].press(event, action);
+        return;
+      }
+      boards[player].contentWindow.postMessage({type: 'tetris-move', action}, '*');
+    });
+
+    window.addEventListener('message', event => {
+      if (!playing || event.data?.type !== 'tetris-loss' || event.data.round !== round) return;
+      const loser = boards.findIndex(board => board.contentWindow === event.source);
+      if (loser === -1) return;
+      const winner = 1 - loser;
+      playing = false;
+      lateralControls.forEach(control => control.clear());
+      players[winner].classList.add('is-winner');
+      boards[winner].contentWindow.postMessage({type: 'tetris-stop'}, '*');
+      status.textContent = 'Jogador ' + (winner + 1) + ' venceu!';
+      status.dataset.state = 'finished';
+      showReadyOverlays();
+    });
+  </script>
+</body>
+</html>
