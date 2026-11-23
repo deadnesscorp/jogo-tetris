@@ -99,8 +99,8 @@
       {KeyA: 'LEFT', KeyD: 'RIGHT', KeyW: 'UP', KeyS: 'hard-drop'},
       {ArrowLeft: 'LEFT', ArrowRight: 'RIGHT', ArrowUp: 'UP', ArrowDown: 'hard-drop'}
     ];
-    const lateralControls = boards.map(board => createLateralControls(action => {
-      board.contentWindow.postMessage({type: 'tetris-move', action}, '*');
+    const lateralControls = boards.map(board => createLateralControls((action, allowWrap) => {
+      board.contentWindow.postMessage({type: 'tetris-move', action, allowWrap}, '*');
     }));
     let loaded = 0;
     let playing = false;

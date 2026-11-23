@@ -276,6 +276,8 @@ h2 { margin: 0 0 12px; color: var(--pink); }
 .row-count, .controls div { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
 .row-count { margin-top: 16px; padding-top: 10px; border-top: 1px solid #604660; color: #ded0e8; }
 .row-count b { color: #ffcf93; font: bold 18px var(--mono); }
+#combo-goal { margin-top: 10px; color: #ded0e8; font: 11px/1.4 var(--mono); }
+#combo-progress { display: block; width: 100%; height: 6px; margin-top: 4px; accent-color: var(--cyan); }
 #upcoming { display: block; width: 100%; height: 90px; border-radius: 6px; background: radial-gradient(#56415d 1px, transparent 1px) center / 9px 9px, radial-gradient(ellipse, #302137, #191421); box-shadow: inset 0 0 0 1px #5c4767, inset 0 2px 10px #100b17aa; }
 .controls div { margin-top: 7px; color: #ded5ea; }
 .controls div + div { border-top: 1px solid #ad85c023; padding-top: 7px; }
@@ -485,3 +487,62 @@ summary { width: fit-content; cursor: pointer; font-size: 10px; }
 }
 .versus-board .masthead, .versus-board details, .versus-board .touch,
 .versus-board .controls, .versus-board #sound, .versus-board #start { display: none; }
+
+/* Give the board the space left after the menus and controls are laid out. */
+body { min-height: 100dvh; }
+#tetris {
+  height: calc(100dvh - 12px);
+  margin-block: 6px;
+  padding: clamp(6px, 1.5vmin, 16px);
+}
+#tetris .cabinet {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  min-height: 0;
+}
+#tetris .marquee-frame {
+  --rail: clamp(5px, 1.6vmin, 12px);
+  flex: 1;
+  min-height: 0;
+  container-type: size;
+}
+#tetris .well {
+  height: min(100cqh, 200cqw);
+  width: auto;
+  aspect-ratio: 1 / 2;
+  margin-inline: auto;
+}
+#tetris #canvas { height: 100%; }
+#tetris .masthead { gap: 6px; margin-bottom: 6px; padding-bottom: 8px; }
+#tetris details { position: relative; margin-top: 0; }
+#performance-panel { position: absolute; bottom: 100%; right: 0; z-index: 2; }
+.versus-room { min-height: 0; }
+.versus-mode nav { flex-wrap: wrap; }
+.versus-board #tetris { height: 100dvh; margin-block: 0; }
+.versus-board .console { height: 100%; grid-template-rows: minmax(0, 1fr); }
+
+@media (max-width: 580px) {
+  #tetris { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+  #tetris .masthead h1 { width: clamp(78px, 32vw, 150px); }
+  #tetris .solo-mode a { padding: 3px 5px; font-size: 11px; }
+  #tetris .console { grid-template-rows: auto minmax(0, 1fr) auto; gap: 5px; }
+  #tetris .cabinet { max-width: none; }
+  #tetris .touch { margin: 0; }
+  #tetris .card { padding: 5px 7px; }
+  #tetris #combo-goal { margin-top: 4px; }
+  .versus-board #tetris { display: block; }
+  .versus-board #tetris .console { grid-template-rows: minmax(0, 1fr); }
+  .versus-board #tetris .cabinet { width: 100%; }
+}
+
+@media (max-height: 650px) and (min-width: 581px) {
+  #tetris .card { padding-block: 5px; }
+  #tetris .controls { display: none; }
+  #tetris .row-count { margin-top: 4px; padding-top: 3px; }
+  #tetris #upcoming { height: 38px; }
+}
+
+@media (max-width: 300px) {
+  .versus-board #tetris .console { grid-template-rows: minmax(0, 1fr) auto; }
+}

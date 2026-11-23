@@ -5,7 +5,7 @@ function createLateralControls(move) {
   function repeat() {
     const direction = Array.from(held.values()).pop();
     move(direction);
-    timer = setTimeout(repeat, 42);
+    timer = setTimeout(repeat, 30);
   }
 
   function clear() {
@@ -24,8 +24,8 @@ function createLateralControls(move) {
       if (event.repeat || held.has(event.code)) return;
       held.set(event.code, direction);
       clearTimeout(timer);
-      move(direction);
-      timer = setTimeout(repeat, 105);
+      move(direction, true);
+      timer = setTimeout(repeat, 85);
     },
     clear
   };
