@@ -25,6 +25,7 @@
         <a id="competitive-mode" href="?competitivo">Modo competitivo</a>
         <a id="multiplayer-mode" href="multiplayer.html">Multiplayer local</a>
         <a href="https://github.com/jakesgordon/javascript-tetris" target="_blank" rel="noopener">Projeto original</a>
+        <button id="about-button" type="button" aria-haspopup="dialog">Sobre</button>
       </nav>
     </header>
     <div class="console">
@@ -77,6 +78,11 @@
     <details><summary>Desempenho</summary><div id="performance-panel"></div></details>
   </main>
 
+  <dialog id="about-game" aria-labelledby="about-title">
+    <h2 id="about-title">Sobre o jogo</h2>
+    <p>Este jogo foi adaptado com ajuda de inteligência artificial para um trabalho. O projeto original é de Jake Gordon.</p>
+    <form method="dialog"><button type="submit">Fechar</button></form>
+  </dialog>
   <script src="stats.js"></script>
   <script src="wordmark.js"></script>
   <script src="skyline.js"></script>
@@ -273,6 +279,9 @@
     }
 
     function addEvents() {
+      get('about-button').addEventListener('click', function() {
+        get('about-game').showModal();
+      });
       var sound = get('sound');
       try {
         soundEnabled = localStorage.getItem('tetris.sound') !== 'off';
@@ -344,7 +353,7 @@
     }
 
     function keydown(ev) {
-      if (versus) return;
+      if (versus || get('about-game').open) return;
       if (ev.target === get('game-position')) return;
       if (ev.target === get('sound') && ev.keyCode === KEY.SPACE) return;
       if (ev.keyCode === KEY.SPACE && ev.target.closest('a, summary, .touch button')) return;
